@@ -105,39 +105,52 @@ export interface CreateStudentData {
   lastName: string
   gender: "masculino" | "femenino" | "otro"
   documentNumber: string
+  birthDate: string // Ahora es obligatorio
   courseId?: string
   grades?: Grades
-  birthDate?: string
   documentType?: "TI" | "CC" | "RC" | "CE" | "PEP"
   status?: "active" | "inactive" | "transferred" | "graduated"
   notes?: string
+  // Campos de acudiente
+  guardianName?: string
+  guardianPhone?: string
+  guardianEmail?: string
 }
 
 export async function createStudent(student: CreateStudentData): Promise<Student> {
+  const insertData = {
+    first_name: student.firstName,
+    last_name: student.lastName,
+    gender: student.gender,
+    document_number: student.documentNumber,
+    document_type: student.documentType ?? "TI",
+    course_id: student.courseId || null,
+    status: student.status ?? "active",
+    birth_date: student.birthDate || null,
+    notes: student.notes || null,
+    // Campos de acudiente
+    guardian_name: student.guardianName || null,
+    guardian_phone: student.guardianPhone || null,
+    guardian_email: student.guardianEmail || null,
+    grades: student.grades ?? {
+      p1: [],
+      p2: [],
+      p3: [],
+      p4: [],
+    },
+  }
+
+  console.log("Inserting student data:", insertData)
+
   const { data, error } = await supabase
     .from("students")
-    .insert({
-      first_name: student.firstName,
-      last_name: student.lastName,
-      gender: student.gender,
-      document_number: student.documentNumber,
-      document_type: student.documentType ?? "TI",
-      course_id: student.courseId ?? null,
-      status: student.status ?? "active",
-      birth_date: student.birthDate,
-      notes: student.notes,
-      grades: student.grades ?? {
-        p1: [],
-        p2: [],
-        p3: [],
-        p4: [],
-      },
-    })
+    .insert(insertData)
     .select()
     .single()
 
   if (error) {
     console.error("Error creating student:", error)
+    console.error("Error details:", JSON.stringify(error, null, 2))
     throw error
   }
 
@@ -158,6 +171,10 @@ export type UpdateStudentData = {
   courseId?: string | null
   notes?: string
   grades?: Partial<Grades>
+  // Campos de acudiente
+  guardianName?: string
+  guardianPhone?: string
+  guardianEmail?: string
 }
 
 export async function updateStudent(
@@ -170,6 +187,11 @@ export async function updateStudent(
   if (updates.lastName !== undefined) dbUpdates.last_name = updates.lastName
   if (updates.courseId !== undefined) dbUpdates.course_id = updates.courseId
   if (updates.notes !== undefined) dbUpdates.notes = updates.notes
+  
+  // Campos de acudiente
+  if (updates.guardianName !== undefined) dbUpdates.guardian_name = updates.guardianName
+  if (updates.guardianPhone !== undefined) dbUpdates.guardian_phone = updates.guardianPhone
+  if (updates.guardianEmail !== undefined) dbUpdates.guardian_email = updates.guardianEmail
 
   if (updates.grades !== undefined) {
     dbUpdates.grades = updates.grades

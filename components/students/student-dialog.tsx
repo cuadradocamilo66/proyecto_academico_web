@@ -2,18 +2,17 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import type { Student, Course } from "@/lib/types"
 import type { CreateStudentData } from "@/lib/students-service"
-import { User, GraduationCap, Heart, Users, Phone, Loader2 } from "lucide-react"
+import { User, GraduationCap, Users, Loader2, CheckCircle2 } from "lucide-react"
 import useSWR from "swr"
 import { fetchCourses } from "@/lib/courses-service"
 
@@ -25,10 +24,10 @@ interface StudentDialogProps {
 }
 
 const documentTypes = [
-  { value: "TI", label: "Tarjeta de Identidad" },
-  { value: "RC", label: "Registro Civil" },
-  { value: "CC", label: "Cédula de Ciudadanía" },
-  { value: "CE", label: "Cédula de Extranjería" },
+  { value: "TI", label: "TI - Tarjeta de Identidad" },
+  { value: "RC", label: "RC - Registro Civil" },
+  { value: "CC", label: "CC - Cédula de Ciudadanía" },
+  { value: "CE", label: "CE - Cédula de Extranjería" },
   { value: "PEP", label: "PEP" },
 ]
 
@@ -37,10 +36,6 @@ const genderOptions = [
   { value: "femenino", label: "Femenino" },
   { value: "otro", label: "Otro" },
 ]
-
-const bloodTypes = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"]
-
-const guardianRelationships = ["Padre", "Madre", "Abuelo/a", "Tío/a", "Hermano/a", "Tutor Legal", "Otro"]
 
 const statusOptions = [
   { value: "active", label: "Activo" },
@@ -64,26 +59,10 @@ export function StudentDialog({ open, onOpenChange, student, onSave }: StudentDi
     documentNumber: "",
     courseId: "",
     status: "active",
-    bloodType: "",
-    healthInsurance: "",
-    disabilities: "",
-    specialNeeds: "",
-    allergies: "",
-    email: "",
-    phone: "",
-    address: "",
-    neighborhood: "",
-    city: "Bogotá",
+    notes: "",
     guardianName: "",
-    guardianRelationship: "",
     guardianPhone: "",
     guardianEmail: "",
-    guardianOccupation: "",
-    guardianAddress: "",
-    emergencyContactName: "",
-    emergencyContactPhone: "",
-    emergencyContactRelationship: "",
-    notes: "",
   })
 
   useEffect(() => {
@@ -97,26 +76,10 @@ export function StudentDialog({ open, onOpenChange, student, onSave }: StudentDi
         documentNumber: student.documentNumber,
         courseId: student.courseId || "",
         status: student.status,
-        bloodType: student.bloodType,
-        healthInsurance: student.healthInsurance,
-        disabilities: student.disabilities,
-        specialNeeds: student.specialNeeds,
-        allergies: student.allergies,
-        email: student.email,
-        phone: student.phone,
-        address: student.address,
-        neighborhood: student.neighborhood,
-        city: student.city,
-        guardianName: student.guardianName,
-        guardianRelationship: student.guardianRelationship,
-        guardianPhone: student.guardianPhone,
-        guardianEmail: student.guardianEmail,
-        guardianOccupation: student.guardianOccupation,
-        guardianAddress: student.guardianAddress,
-        emergencyContactName: student.emergencyContactName,
-        emergencyContactPhone: student.emergencyContactPhone,
-        emergencyContactRelationship: student.emergencyContactRelationship,
         notes: student.notes,
+        guardianName: student.guardianName || "",
+        guardianPhone: student.guardianPhone || "",
+        guardianEmail: student.guardianEmail || "",
       })
     } else {
       setFormData({
@@ -128,26 +91,10 @@ export function StudentDialog({ open, onOpenChange, student, onSave }: StudentDi
         documentNumber: "",
         courseId: "",
         status: "active",
-        bloodType: "",
-        healthInsurance: "",
-        disabilities: "",
-        specialNeeds: "",
-        allergies: "",
-        email: "",
-        phone: "",
-        address: "",
-        neighborhood: "",
-        city: "Bogotá",
+        notes: "",
         guardianName: "",
-        guardianRelationship: "",
         guardianPhone: "",
         guardianEmail: "",
-        guardianOccupation: "",
-        guardianAddress: "",
-        emergencyContactName: "",
-        emergencyContactPhone: "",
-        emergencyContactRelationship: "",
-        notes: "",
       })
     }
     setActiveTab("personal")
@@ -176,438 +123,318 @@ export function StudentDialog({ open, onOpenChange, student, onSave }: StudentDi
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px] max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-xl">{student ? "Editar Estudiante" : "Nuevo Estudiante"}</DialogTitle>
+      <DialogContent className="max-w-3xl max-h-[90vh] p-0 gap-0">
+        <DialogHeader className="px-6 pt-6 pb-4 border-b">
+          <div className="flex items-center gap-3">
+            <div className="h-12 w-12 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center shrink-0">
+              <User className="h-6 w-6 text-white" />
+            </div>
+            <div>
+              <DialogTitle className="text-2xl font-semibold">
+                {student ? "Editar Estudiante" : "Nuevo Estudiante"}
+              </DialogTitle>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {student ? "Actualiza la información del estudiante" : "Completa los datos del nuevo estudiante"}
+              </p>
+            </div>
+          </div>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit}>
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="px-6">
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="personal" className="gap-1 text-xs">
-                  <User className="h-3 w-3" />
-                  Personal
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col overflow-hidden">
+            <div className="px-6 pt-4 border-b bg-muted/30">
+              <TabsList className="w-full justify-start h-auto p-1 bg-background rounded-lg">
+                <TabsTrigger value="personal" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <User className="h-4 w-4" />
+                  <span>Personal</span>
                 </TabsTrigger>
-                <TabsTrigger value="academic" className="gap-1 text-xs">
-                  <GraduationCap className="h-3 w-3" />
-                  Académico
+                <TabsTrigger value="academic" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <GraduationCap className="h-4 w-4" />
+                  <span>Académico</span>
                 </TabsTrigger>
-                <TabsTrigger value="health" className="gap-1 text-xs">
-                  <Heart className="h-3 w-3" />
-                  Salud
-                </TabsTrigger>
-                <TabsTrigger value="guardian" className="gap-1 text-xs">
-                  <Users className="h-3 w-3" />
-                  Acudiente
-                </TabsTrigger>
-                <TabsTrigger value="contact" className="gap-1 text-xs">
-                  <Phone className="h-3 w-3" />
-                  Contacto
+                <TabsTrigger value="guardian" className="gap-2 data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                  <Users className="h-4 w-4" />
+                  <span>Acudiente</span>
                 </TabsTrigger>
               </TabsList>
             </div>
 
-            <ScrollArea className="h-[400px] px-6 py-4">
-              {/* Personal Information Tab */}
-              <TabsContent value="personal" className="mt-0 space-y-4">
-                <Card>
-                  <CardContent className="pt-4 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="firstName">Nombres *</Label>
-                        <Input
-                          id="firstName"
-                          value={formData.firstName}
-                          onChange={(e) => updateField("firstName", e.target.value)}
-                          placeholder="Ej: Juan Pablo"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="lastName">Apellidos *</Label>
-                        <Input
-                          id="lastName"
-                          value={formData.lastName}
-                          onChange={(e) => updateField("lastName", e.target.value)}
-                          placeholder="Ej: Martínez López"
-                          required
-                        />
-                      </div>
+            <ScrollArea className="flex-1 px-6">
+              {/* PERSONAL TAB */}
+              <TabsContent value="personal" className="mt-6 space-y-6 pb-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b">
+                    <div className="h-8 w-8 rounded-lg bg-blue-100 dark:bg-blue-950/30 flex items-center justify-center">
+                      <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                     </div>
+                    <h3 className="font-semibold text-base">Información Personal</h3>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="gender">Género *</Label>
-                        <Select value={formData.gender} onValueChange={(value) => updateField("gender", value)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {genderOptions.map((option) => (
-                              <SelectItem key={option.value} value={option.value}>
-                                {option.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="birthDate">Fecha de Nacimiento</Label>
-                        <Input
-                          id="birthDate"
-                          type="date"
-                          value={formData.birthDate}
-                          onChange={(e) => updateField("birthDate", e.target.value)}
-                          required
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="documentType">Tipo de Documento</Label>
-                        <Select
-                          value={formData.documentType}
-                          onValueChange={(value) => updateField("documentType", value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {documentTypes.map((type) => (
-                              <SelectItem key={type.value} value={type.value}>
-                                {type.label}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="documentNumber">Número de Documento</Label>
-                        <Input
-                          id="documentNumber"
-                          value={formData.documentNumber}
-                          onChange={(e) => updateField("documentNumber", e.target.value)}
-                          placeholder="Ej: 1000123456"
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Academic Information Tab */}
-              <TabsContent value="academic" className="mt-0 space-y-4">
-                <Card>
-                  <CardContent className="pt-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="courseId">Curso *</Label>
-                      <Select value={formData.courseId || ""} onValueChange={(value) => updateField("courseId", value)}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar curso" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {courses.map((course) => (
-                            <SelectItem key={course.id} value={course.id}>
-                              {course.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="status">Estado</Label>
-                      <Select value={formData.status} onValueChange={(value) => updateField("status", value)}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {statusOptions.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="notes">Notas Adicionales</Label>
-                      <Textarea
-                        id="notes"
-                        value={formData.notes}
-                        onChange={(e) => updateField("notes", e.target.value)}
-                        placeholder="Observaciones generales sobre el estudiante..."
-                        rows={3}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Health Information Tab */}
-              <TabsContent value="health" className="mt-0 space-y-4">
-                <Card>
-                  <CardContent className="pt-4 space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="bloodType">Tipo de Sangre</Label>
-                        <Select value={formData.bloodType} onValueChange={(value) => updateField("bloodType", value)}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {bloodTypes.map((type) => (
-                              <SelectItem key={type} value={type}>
-                                {type}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="healthInsurance">EPS / Seguro de Salud</Label>
-                        <Input
-                          id="healthInsurance"
-                          value={formData.healthInsurance}
-                          onChange={(e) => updateField("healthInsurance", e.target.value)}
-                          placeholder="Ej: Sanitas, Nueva EPS..."
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="disabilities">Discapacidades</Label>
-                      <Textarea
-                        id="disabilities"
-                        value={formData.disabilities}
-                        onChange={(e) => updateField("disabilities", e.target.value)}
-                        placeholder="Describir si el estudiante tiene alguna discapacidad..."
-                        rows={2}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="specialNeeds">Necesidades Especiales</Label>
-                      <Textarea
-                        id="specialNeeds"
-                        value={formData.specialNeeds}
-                        onChange={(e) => updateField("specialNeeds", e.target.value)}
-                        placeholder="TDAH, dislexia, apoyo pedagógico, etc..."
-                        rows={2}
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="allergies">Alergias</Label>
-                      <Textarea
-                        id="allergies"
-                        value={formData.allergies}
-                        onChange={(e) => updateField("allergies", e.target.value)}
-                        placeholder="Alergias alimentarias, medicamentos, etc..."
-                        rows={2}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Guardian Information Tab */}
-              <TabsContent value="guardian" className="mt-0 space-y-4">
-                <Card>
-                  <CardContent className="pt-4 space-y-4">
-                    <h4 className="font-medium text-sm text-muted-foreground">Acudiente Principal</h4>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="guardianName">Nombre Completo</Label>
-                        <Input
-                          id="guardianName"
-                          value={formData.guardianName}
-                          onChange={(e) => updateField("guardianName", e.target.value)}
-                          placeholder="Ej: María López García"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="guardianRelationship">Parentesco</Label>
-                        <Select
-                          value={formData.guardianRelationship}
-                          onValueChange={(value) => updateField("guardianRelationship", value)}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Seleccionar" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {guardianRelationships.map((rel) => (
-                              <SelectItem key={rel} value={rel}>
-                                {rel}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="guardianPhone">Teléfono</Label>
-                        <Input
-                          id="guardianPhone"
-                          type="tel"
-                          value={formData.guardianPhone}
-                          onChange={(e) => updateField("guardianPhone", e.target.value)}
-                          placeholder="300 123 4567"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="guardianEmail">Correo Electrónico</Label>
-                        <Input
-                          id="guardianEmail"
-                          type="email"
-                          value={formData.guardianEmail}
-                          onChange={(e) => updateField("guardianEmail", e.target.value)}
-                          placeholder="correo@ejemplo.com"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="guardianOccupation">Ocupación</Label>
-                        <Input
-                          id="guardianOccupation"
-                          value={formData.guardianOccupation}
-                          onChange={(e) => updateField("guardianOccupation", e.target.value)}
-                          placeholder="Ej: Ingeniero, Docente..."
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="guardianAddress">Dirección</Label>
-                        <Input
-                          id="guardianAddress"
-                          value={formData.guardianAddress}
-                          onChange={(e) => updateField("guardianAddress", e.target.value)}
-                          placeholder="Calle 123 # 45-67"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="border-t pt-4 mt-4">
-                      <h4 className="font-medium text-sm text-muted-foreground mb-4">
-                        Contacto de Emergencia Adicional
-                      </h4>
-
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="emergencyContactName">Nombre</Label>
-                          <Input
-                            id="emergencyContactName"
-                            value={formData.emergencyContactName}
-                            onChange={(e) => updateField("emergencyContactName", e.target.value)}
-                            placeholder="Nombre completo"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="emergencyContactPhone">Teléfono</Label>
-                          <Input
-                            id="emergencyContactPhone"
-                            type="tel"
-                            value={formData.emergencyContactPhone}
-                            onChange={(e) => updateField("emergencyContactPhone", e.target.value)}
-                            placeholder="300 123 4567"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="emergencyContactRelationship">Parentesco</Label>
-                          <Input
-                            id="emergencyContactRelationship"
-                            value={formData.emergencyContactRelationship}
-                            onChange={(e) => updateField("emergencyContactRelationship", e.target.value)}
-                            placeholder="Ej: Tía"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </TabsContent>
-
-              {/* Contact Information Tab */}
-              <TabsContent value="contact" className="mt-0 space-y-4">
-                <Card>
-                  <CardContent className="pt-4 space-y-4">
-                    <h4 className="font-medium text-sm text-muted-foreground">Contacto del Estudiante</h4>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="email">Correo Electrónico</Label>
-                        <Input
-                          id="email"
-                          type="email"
-                          value={formData.email}
-                          onChange={(e) => updateField("email", e.target.value)}
-                          placeholder="estudiante@ejemplo.com"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="phone">Teléfono</Label>
-                        <Input
-                          id="phone"
-                          type="tel"
-                          value={formData.phone}
-                          onChange={(e) => updateField("phone", e.target.value)}
-                          placeholder="300 123 4567"
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="address">Dirección de Residencia</Label>
+                      <Label htmlFor="firstName" className="text-sm font-medium">
+                        Nombres <span className="text-destructive">*</span>
+                      </Label>
                       <Input
-                        id="address"
-                        value={formData.address}
-                        onChange={(e) => updateField("address", e.target.value)}
-                        placeholder="Calle 123 # 45-67, Apartamento 101"
+                        id="firstName"
+                        value={formData.firstName}
+                        onChange={(e) => updateField("firstName", e.target.value)}
+                        placeholder="Ej: Juan Pablo"
+                        className="h-10"
+                        required
                       />
                     </div>
-
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="neighborhood">Barrio</Label>
-                        <Input
-                          id="neighborhood"
-                          value={formData.neighborhood}
-                          onChange={(e) => updateField("neighborhood", e.target.value)}
-                          placeholder="Ej: Chapinero, Kennedy..."
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="city">Ciudad</Label>
-                        <Input
-                          id="city"
-                          value={formData.city}
-                          onChange={(e) => updateField("city", e.target.value)}
-                          placeholder="Bogotá"
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="lastName" className="text-sm font-medium">
+                        Apellidos <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="lastName"
+                        value={formData.lastName}
+                        onChange={(e) => updateField("lastName", e.target.value)}
+                        placeholder="Ej: Martínez López"
+                        className="h-10"
+                        required
+                      />
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="documentType" className="text-sm font-medium">
+                        Tipo de Documento <span className="text-destructive">*</span>
+                      </Label>
+                      <Select
+                        value={formData.documentType}
+                        onValueChange={(value) => updateField("documentType", value)}
+                      >
+                        <SelectTrigger className="h-10">
+                          <SelectValue placeholder="Seleccionar tipo" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {documentTypes.map((type) => (
+                            <SelectItem key={type.value} value={type.value}>
+                              {type.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="documentNumber" className="text-sm font-medium">
+                        Número de Documento <span className="text-destructive">*</span>
+                      </Label>
+                      <Input
+                        id="documentNumber"
+                        value={formData.documentNumber}
+                        onChange={(e) => updateField("documentNumber", e.target.value)}
+                        placeholder="Ej: 1000123456"
+                        className="h-10"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="gender" className="text-sm font-medium">
+                      Género <span className="text-destructive">*</span>
+                    </Label>
+                    <Select value={formData.gender} onValueChange={(value) => updateField("gender", value)}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Seleccionar género" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {genderOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            {option.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  
+                </div>
+              </TabsContent>
+
+              {/* ACADEMIC TAB */}
+              <TabsContent value="academic" className="mt-6 space-y-6 pb-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b">
+                    <div className="h-8 w-8 rounded-lg bg-purple-100 dark:bg-purple-950/30 flex items-center justify-center">
+                      <GraduationCap className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    </div>
+                    <h3 className="font-semibold text-base">Información Académica</h3>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="courseId" className="text-sm font-medium">
+                      Curso <span className="text-destructive">*</span>
+                    </Label>
+                    <Select value={formData.courseId || undefined} onValueChange={(value) => updateField("courseId", value)}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue placeholder="Seleccionar curso" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {courses.map((course) => (
+                          <SelectItem key={course.id} value={course.id}>
+                            {course.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-muted-foreground">
+                      Selecciona el curso al que pertenece el estudiante
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="status" className="text-sm font-medium">
+                      Estado <span className="text-destructive">*</span>
+                    </Label>
+                    <Select value={formData.status} onValueChange={(value) => updateField("status", value)}>
+                      <SelectTrigger className="h-10">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {statusOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <div className="flex items-center gap-2">
+                              {option.value === "active" && (
+                                <div className="h-2 w-2 rounded-full bg-green-500"></div>
+                              )}
+                              {option.value === "inactive" && (
+                                <div className="h-2 w-2 rounded-full bg-gray-400"></div>
+                              )}
+                              {option.value === "transferred" && (
+                                <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                              )}
+                              {option.value === "graduated" && (
+                                <div className="h-2 w-2 rounded-full bg-purple-500"></div>
+                              )}
+                              {option.label}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="notes" className="text-sm font-medium">
+                      Notas y Observaciones
+                    </Label>
+                    <Textarea
+                      id="notes"
+                      value={formData.notes}
+                      onChange={(e) => updateField("notes", e.target.value)}
+                      placeholder="Observaciones generales sobre el estudiante, comportamiento, rendimiento académico, etc..."
+                      rows={5}
+                      className="resize-none"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Información adicional que consideres relevante
+                    </p>
+                  </div>
+                </div>
+              </TabsContent>
+
+              {/* GUARDIAN TAB */}
+              <TabsContent value="guardian" className="mt-6 space-y-6 pb-6">
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 pb-2 border-b">
+                    <div className="h-8 w-8 rounded-lg bg-emerald-100 dark:bg-emerald-950/30 flex items-center justify-center">
+                      <Users className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <h3 className="font-semibold text-base">Información del Acudiente</h3>
+                  </div>
+
+                  <div className="rounded-lg border bg-blue-50 dark:bg-blue-950/20 border-blue-200 p-4">
+                    <p className="text-sm text-blue-900 dark:text-blue-200">
+                      💡 Los datos del acudiente son opcionales pero recomendados para mantener una comunicación efectiva con las familias.
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="guardianName" className="text-sm font-medium">
+                      Nombre Completo del Acudiente
+                    </Label>
+                    <Input
+                      id="guardianName"
+                      value={formData.guardianName}
+                      onChange={(e) => updateField("guardianName", e.target.value)}
+                      placeholder="Ej: María López García"
+                      className="h-10"
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Nombre del padre, madre o tutor legal
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="guardianPhone" className="text-sm font-medium">
+                        Teléfono de Contacto
+                      </Label>
+                      <Input
+                        id="guardianPhone"
+                        type="tel"
+                        value={formData.guardianPhone}
+                        onChange={(e) => updateField("guardianPhone", e.target.value)}
+                        placeholder="300 123 4567"
+                        className="h-10"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="guardianEmail" className="text-sm font-medium">
+                        Correo Electrónico
+                      </Label>
+                      <Input
+                        id="guardianEmail"
+                        type="email"
+                        value={formData.guardianEmail}
+                        onChange={(e) => updateField("guardianEmail", e.target.value)}
+                        placeholder="correo@ejemplo.com"
+                        className="h-10"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="rounded-lg border-2 border-dashed border-muted-foreground/20 bg-muted/30 p-4 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Proporciona al menos un medio de contacto (teléfono o email) para comunicaciones importantes
+                    </p>
+                  </div>
+                </div>
               </TabsContent>
             </ScrollArea>
           </Tabs>
 
-          <div className="flex justify-end gap-2 p-6 pt-4 border-t">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancelar
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              {student ? "Guardar Cambios" : "Crear Estudiante"}
-            </Button>
-          </div>
+          <DialogFooter className="px-6 py-4 border-t bg-muted/30">
+            <div className="flex items-center justify-between w-full">
+              <p className="text-xs text-muted-foreground">
+                Los campos marcados con <span className="text-destructive">*</span> son obligatorios
+              </p>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                  Cancelar
+                </Button>
+                <Button type="submit" disabled={isSubmitting} className="gap-2">
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Guardando...
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="h-4 w-4" />
+                      {student ? "Guardar Cambios" : "Crear Estudiante"}
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
