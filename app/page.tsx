@@ -12,7 +12,7 @@ export default function DashboardPage() {
     <AppShell>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Buenos días, Prof. María</h1>
+          <h1 className="text-2xl font-bold text-foreground">Buenos días, Prof. Camilo Cuadrado</h1>
           <p className="text-muted-foreground">Aquí está el resumen de tu actividad docente</p>
         </div>
 

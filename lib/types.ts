@@ -243,3 +243,226 @@ export function dbStudentToFrontend(
     grades: dbStudent.grades ?? emptyGrades,
   }
 }
+
+// ===============================
+// Weekly Planning Types
+// ===============================
+
+export interface WeeklyActivity {
+  day: "Lunes" | "Martes" | "Miércoles" | "Jueves" | "Viernes"
+  activity: string
+}
+
+export interface WeeklyPlanningDB {
+  id: string
+  course_id: string
+  week_number: number
+  start_date: string
+  end_date: string
+  unit: string
+  competence: string
+  standard: string
+  indicators: string[] // Array de strings en JSONB
+  activities: WeeklyActivity[] // Array de objetos en JSONB
+  resources: string[] // Array de strings en JSONB
+  status: "draft" | "current" | "completed"
+  created_at: string
+  updated_at: string
+}
+
+export interface WeeklyPlanning {
+  id: string
+  courseId: string
+  courseName?: string
+  weekNumber: number
+  startDate: string
+  endDate: string
+  dateRange: string // "13 - 17 Enero 2026"
+  unit: string
+  competence: string
+  standard: string
+  indicators: string[]
+  activities: WeeklyActivity[]
+  resources: string[]
+  status: "draft" | "current" | "completed"
+}
+
+export interface CreateWeeklyPlanningData {
+  courseId: string
+  weekNumber: number
+  startDate: string
+  endDate: string
+  unit: string
+  competence: string
+  standard: string
+  indicators: string[]
+  activities: WeeklyActivity[]
+  resources: string[]
+  status?: "draft" | "current" | "completed"
+}
+
+// ===============================
+// Helper Functions
+// ===============================
+
+export function formatDateRange(startDate: string, endDate: string): string {
+  const start = new Date(startDate)
+  const end = new Date(endDate)
+  
+  const months = [
+    "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+    "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+  ]
+  
+  const startDay = start.getDate()
+  const endDay = end.getDate()
+  const month = months[end.getMonth()]
+  const year = end.getFullYear()
+  
+  return `${startDay} - ${endDay} ${month} ${year}`
+}
+
+export function dbPlanningToFrontend(
+  dbPlanning: WeeklyPlanningDB,
+  courseName?: string
+): WeeklyPlanning {
+  return {
+    id: dbPlanning.id,
+    courseId: dbPlanning.course_id,
+    courseName,
+    weekNumber: dbPlanning.week_number,
+    startDate: dbPlanning.start_date,
+    endDate: dbPlanning.end_date,
+    dateRange: formatDateRange(dbPlanning.start_date, dbPlanning.end_date),
+    unit: dbPlanning.unit,
+    competence: dbPlanning.competence,
+    standard: dbPlanning.standard,
+    indicators: dbPlanning.indicators || [],
+    activities: dbPlanning.activities || [],
+    resources: dbPlanning.resources || [],
+    status: dbPlanning.status,
+  }
+}
+
+// ===============================
+// SQL para crear la tabla
+// ===============================
+
+/*
+CREATE TABLE weekly_planning (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  course_id UUID NOT NULL REFERENCES courses(id) ON DELETE CASCADE,
+  week_number INTEGER NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  unit TEXT NOT NULL,
+  competence TEXT NOT NULL,
+  standard TEXT NOT NULL,
+  indicators JSONB DEFAULT '[]'::jsonb,
+  activities JSONB DEFAULT '[]'::jsonb,
+  resources JSONB DEFAULT '[]'::jsonb,
+  status TEXT DEFAULT 'draft' CHECK (status IN ('draft', 'current', 'completed')),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índices para mejorar el rendimiento
+CREATE INDEX idx_weekly_planning_course ON weekly_planning(course_id);
+CREATE INDEX idx_weekly_planning_status ON weekly_planning(status);
+CREATE INDEX idx_weekly_planning_dates ON weekly_planning(start_date, end_date);
+
+-- Trigger para actualizar updated_at
+CREATE OR REPLACE FUNCTION update_updated_at_column()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = NOW();
+  RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_weekly_planning_updated_at 
+BEFORE UPDATE ON weekly_planning
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+*/
+
+// ===============================
+// Observations Types
+// ===============================
+
+export interface ObservationDB {
+  id: string
+  student_id: string
+  type: "academic" | "behavioral" | "attendance" | "positive"
+  severity: "low" | "medium" | "high"
+  description: string
+  date: string
+  created_at: string
+  updated_at: string
+}
+
+export interface Observation {
+  id: string
+  studentId: string
+  studentName: string
+  type: "academic" | "behavioral" | "attendance" | "positive"
+  severity: "low" | "medium" | "high"
+  description: string
+  date: string
+  createdAt: string
+}
+
+export interface CreateObservationData {
+  studentId: string
+  type: "academic" | "behavioral" | "attendance" | "positive"
+  severity: "low" | "medium" | "high"
+  description: string
+  date: string
+}
+
+// ===============================
+// Helper Functions
+// ===============================
+
+export function dbObservationToFrontend(
+  dbObservation: ObservationDB,
+  studentName?: string
+): Observation {
+  return {
+    id: dbObservation.id,
+    studentId: dbObservation.student_id,
+    studentName: studentName || "",
+    type: dbObservation.type,
+    severity: dbObservation.severity,
+    description: dbObservation.description,
+    date: dbObservation.date,
+    createdAt: dbObservation.created_at,
+  }
+}
+
+// ===============================
+// SQL para crear la tabla
+// ===============================
+
+/*
+CREATE TABLE observations (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
+  type TEXT NOT NULL CHECK (type IN ('academic', 'behavioral', 'attendance', 'positive')),
+  severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high')),
+  description TEXT NOT NULL,
+  date DATE NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Índices para mejorar el rendimiento
+CREATE INDEX idx_observations_student ON observations(student_id);
+CREATE INDEX idx_observations_date ON observations(date);
+CREATE INDEX idx_observations_type ON observations(type);
+CREATE INDEX idx_observations_severity ON observations(severity);
+
+-- Trigger para actualizar updated_at
+CREATE TRIGGER update_observations_updated_at 
+BEFORE UPDATE ON observations
+FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+*/

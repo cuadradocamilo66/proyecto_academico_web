@@ -48,7 +48,7 @@ export function Topbar({ selectedCourse, onCourseChange }: TopbarProps) {
               <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <User className="h-4 w-4" />
               </div>
-              <span className="text-sm font-medium">Prof. María González</span>
+              <span className="text-sm font-medium">Prof. Camilo Cuadrado</span>
               <ChevronDown className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
