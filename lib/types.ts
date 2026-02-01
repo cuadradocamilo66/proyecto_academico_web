@@ -439,30 +439,53 @@ export function dbObservationToFrontend(
   }
 }
 
+export interface EventDB {
+  id: string
+  title: string
+  description: string | null
+  date: string
+  time: string | null
+  type: "deadline" | "meeting" | "exam" | "planning" | "other"
+  course_id: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface Event {
+  id: string
+  title: string
+  description: string | null
+  date: string
+  time: string | null
+  type: "deadline" | "meeting" | "exam" | "planning" | "other"
+  courseId: string | null
+  courseName?: string
+  createdAt: string
+}
+
+export interface CreateEventData {
+  title: string
+  description?: string
+  date: string
+  time?: string
+  type: "deadline" | "meeting" | "exam" | "planning" | "other"
+  courseId?: string
+}
+
 // ===============================
-// SQL para crear la tabla
+// HELPERS
 // ===============================
 
-/*
-CREATE TABLE observations (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  student_id UUID NOT NULL REFERENCES students(id) ON DELETE CASCADE,
-  type TEXT NOT NULL CHECK (type IN ('academic', 'behavioral', 'attendance', 'positive')),
-  severity TEXT NOT NULL CHECK (severity IN ('low', 'medium', 'high')),
-  description TEXT NOT NULL,
-  date DATE NOT NULL,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-);
-
--- Índices para mejorar el rendimiento
-CREATE INDEX idx_observations_student ON observations(student_id);
-CREATE INDEX idx_observations_date ON observations(date);
-CREATE INDEX idx_observations_type ON observations(type);
-CREATE INDEX idx_observations_severity ON observations(severity);
-
--- Trigger para actualizar updated_at
-CREATE TRIGGER update_observations_updated_at 
-BEFORE UPDATE ON observations
-FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-*/
+export function dbEventToFrontend(dbEvent: EventDB, courseName?: string): Event {
+  return {
+    id: dbEvent.id,
+    title: dbEvent.title,
+    description: dbEvent.description,
+    date: dbEvent.date,
+    time: dbEvent.time,
+    type: dbEvent.type,
+    courseId: dbEvent.course_id,
+    courseName,
+    createdAt: dbEvent.created_at,
+  }
+}
